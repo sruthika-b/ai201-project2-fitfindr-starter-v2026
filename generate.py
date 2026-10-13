@@ -18,7 +18,8 @@ What this does for you:
   • Stops if a session makes an unreasonable number of calls, rather than
     silently draining your day's allowance. A runaway agent loop is the
     classic way to do that.
-  • Retries when the service says you're going too fast.
+    • Retries when the service is temporarily unavailable or says you're going
+        too fast.
   • Returns a readable message when the model can't be reached, instead of a
     stack trace. Unit 4 Milestone 2 has you trigger exactly that on purpose.
   • Counts your calls and the tokens they used, so quota — and cost — are
@@ -328,19 +329,27 @@ def generate(
                 or "resource" in message and "exhaust" in message
                 or "rate" in message and "limit" in message
             )
-            if not rate_limited:
+            temporarily_unavailable = (
+                "503" in message
+                or "unavailable" in message
+                or "high demand" in message
+                or "overloaded" in message
+            )
+            if not rate_limited and not temporarily_unavailable:
                 raise ModelUnavailable(_explain(exc)) from exc
             backoff = _retry_delay(exc, attempt)
             print(
-                f"  [rate limit] service pushed back. Waiting {backoff:.0f}s "
+                f"  [model retry] service temporarily unavailable or rate "
+                f"limited. Waiting {backoff:.0f}s "
                 f"(attempt {attempt + 1} of {config.MAX_RETRIES}). This is "
-                f"the limiter doing its job, not a bug.",
+                f"temporary; retrying the request.",
                 file=sys.stderr,
                 flush=True,
             )
             time.sleep(backoff)
 
     raise RuntimeError(
-        f"Still rate limited after {config.MAX_RETRIES} attempts. Wait a "
-        f"minute and try again — your key is fine.\nLast error: {last_error}"
+        f"The model service was still unavailable or rate limited after "
+        f"{config.MAX_RETRIES} attempts. Wait a moment and try again.\n"
+        f"Last error: {last_error}"
     )
