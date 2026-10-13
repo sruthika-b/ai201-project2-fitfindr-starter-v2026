@@ -23,6 +23,7 @@ the description has to say what is *in* the list.
 import config  # noqa: F401 — you'll use this in search_listings
 from generate import generate
 from utils.data_loader import load_listings
+from utils.stopwords import STOPWORDS as _STOPWORDS
 
 
 # ── Tool 1: search_listings ───────────────────────────────────────────────────
