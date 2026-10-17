@@ -28,7 +28,7 @@ tool calls and returns a fit card — in at least 4 of 5 tries.
 <!-- Why 4 of 5 and not 5 of 5? Something about your search, probably —
      "my search is a plain keyword match and some phrasings will miss" is a
      real answer. -->
-
+I chose 4 of 5 instead of 5 of 5 because the search uses keyword matching, so some query phrasings may fail to find a relevant listing. The outfit and fit-card tools also depend on model calls, which can occasionally fail, 4 successful end-to-end runs still sets a high bar without assuming every run will succeed.
 ---
 
 ## 2. An impossible query stops before the second tool
@@ -39,26 +39,15 @@ Given a query that matches no listings, the agent stops before calling
 **Why this target:**
 <!-- Why is 5 of 5 reasonable here when criterion 1 isn't? What's different
      about this path? -->
-
+We shouldn't ideally make any further calls with 0 search search results, those are unwanted calls and adds no value to the user's query, we need to add an early exit before calling any further tools with no search results consistently.
 ---
 
 ## 3. Something about state
 
-<!-- YOU WRITE THIS ONE.
-
-     How would you know that the item your search found is the same item the
-     next tool received? Name something countable or observable.
-
-     This is the criterion people find hardest, because state failure doesn't
-     look like state failure — it looks like a tool problem. Something that
-     compares session["selected_item"] against what actually reached
-     suggest_outfit is the shape you're after. -->
-
-
+For matching queries, in 5 of 5 tries, the id of the item passed to suggest_outfit matches the id of session["selected_item"].
 
 **Why this target:**
-
-
+I picked 5 of 5 because passing the selected item between tools is a direct state handoff, so it should be consistent every time.
 
 ---
 
@@ -74,12 +63,10 @@ Given a query that matches no listings, the agent stops before calling
      mentions the price? Two different items producing the same opening
      sentence? A card longer than a caption anyone would post? Any of those can
      be turned into a number. -->
-
-
+For five fit-card generations using the same item and outfit, at least four captions must be 2–4 sentences and mention the item, its price, and the platform. The wording can vary.
 
 **Why this target:**
-
-
+I chose 4 of 5 because the model can phrase the same caption differently and may occasionally leave out a detail. Requiring the key information in most outputs still sets a clear quality bar while allowing for that variation.
 
 ---
 
@@ -91,12 +78,10 @@ Given a query that matches no listings, the agent stops before calling
      wardrobe path, what happens when the model can't be reached, whether the
      search respects a price ceiling — anything, as long as it names a number
      or an observable outcome. -->
-
-
+Given a query with a size that matches a listing, every result returned by search_listings matches that size in 5 of 5 tries.
 
 **Why this target:**
-
-
+I chose 5 of 5 because size is a direct filter against fixed listing data, so every returned item should match the requested size. Returning even one item in the wrong size would make the search unreliable.
 
 ---
 
