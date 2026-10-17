@@ -59,24 +59,24 @@
 
 ### `search_listings`
 
-- **What it does:** Searches thrift listings for items matching the requested description, optionally filtered by size and maximum price.
+- **What it does:** Searches thrift listings for items matching the requested description, optionally filtered by size and maximum price. Compare lowercase alphanumeric query tokens after removing stopwords and one-character tokens against each listing's `description`; size matching is case-insensitive exact matching on slash-separated size tokens after removing parenthetical notes, with any `ONE SIZE` listing matching any requested size.
 - **Inputs:** `description` (str), `size` (str | None), `max_price` (float | None).
-- **Returns:** A list of matching listing dicts, each with `id`, `title`, `description`, `category`, `style_tags`, `size`, `condition`, `price`, `colors`, `brand`, and `platform`, ordered best match first.
-- **When it has nothing:** Returns an empty list (`[]`) when no listings match.
+- **Returns:** A list of matching listing dicts, each with `id`, `title`, `description`, `category`, `style_tags`, `size`, `condition`, `price`, `colors`, `brand`, and `platform`; include only listings at or below `max_price`, rank by descending keyword-overlap score, preserve dataset order for ties, and return no more than `config.SEARCH_RESULT_LIMIT` results.
+- **When it has nothing:** Returns an empty list (`[]`) if no listing passes the filters and has at least one query-keyword match; `size=None` and `max_price=None` disable their respective filters.
 
 ### `suggest_outfit`
 
 - **What it does:** Suggests one or two outfits using the selected thrift item and the user's wardrobe.
-- **Inputs:** `new_item` (dict), `wardrobe` (dict with an `items` list).
-- **Returns:** A non-empty string containing outfit suggestions.
-- **When it has nothing:** If the wardrobe's `items` list is empty, returns general styling advice for the new item instead of an empty string or error.
+- **Inputs:** `new_item` (listing dict), `wardrobe` (dict with an `items` list of wardrobe-item dicts containing `name`, `category`, `colors`, and `style_tags`, plus optional `notes`).
+- **Returns:** A non-empty string with one or two outfit suggestions; when wardrobe items exist, each suggestion must name at least one piece from `wardrobe["items"]` and explain how it pairs with `new_item`.
+- **When it has nothing:** If `wardrobe["items"]` is empty, return general styling advice for `new_item` without claiming the user owns any specific pieces; do not return an empty string or raise an error for an empty wardrobe.
 
 ### `create_fit_card`
 
 - **What it does:** Writes a short, post-ready caption about the thrifted item and a suggested outfit.
 - **Inputs:** `outfit` (str), `new_item` (dict).
-- **Returns:** A two-to-four sentence caption mentioning the item, price, platform, and its vibe.
-- **When it has nothing:** If `outfit` is empty or whitespace, returns a descriptive message about the item rather than raising an error.
+- **Returns:** A two-to-four sentence caption based on `outfit` that names `new_item["title"]`, states its `price` and `platform` exactly once each, and describes the outfit's vibe.
+- **When it has nothing:** If `outfit` is empty or whitespace, return a non-empty descriptive fallback naming the item's title, price, and platform, without inventing outfit details or raising an error.
 
 ---
 
@@ -93,7 +93,7 @@
      The grader checks your code against what you claim here, so the file and
      function have to be real. -->
 
-**Branch rule:**
+**Branch rule:** If `search_listings` returns no results, set `session["error"]` to an actionable message and return before calling later tools, otherwise, save the first result as `session["selected_item"]`, then use it with the wardrobe in `suggest_outfit` before creating the fit card.
 
 **Where it lives:** `agent.py::run_agent`
 
