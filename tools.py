@@ -25,6 +25,23 @@ from generate import generate
 from utils.data_loader import load_listings
 from utils.stopwords import STOPWORDS as _STOPWORDS
 
+def _keywords(text: str) -> set[str]:
+    # Lowercase words worth matching on and stopwords removed.
+    words = re.finall(r"[a-z0-9]+", (text or "").lower())
+    return {w for w in set(words) if w not in _STOPWORDS and len(w) > 1}
+
+def _size_tokens(size: str) -> set[str]:
+    cleaned = re.sub(r"\([^)]*\)", " ", size or "")
+    parts = [p.strip().upper for p in cleaned.split("/")]
+    return {p for p in parts if p}
+
+def _size_matches(wanted: str, listing_size: str) -> bool:
+    if not wanted:
+        return True
+    listing_tokens = _size_tokens(listing_size)
+    if any(token.startswith("ONE SIZE") for token in listing_tokens):
+        return True
+    return bool(_size_tokens(wanted) & listing_tokens)
 
 # ── Tool 1: search_listings ───────────────────────────────────────────────────
 
