@@ -13,6 +13,8 @@ Build and test your three tools in `tools.py` first. Then come here.
     python agent.py          runs both example paths below
 """
 
+import re
+
 import config
 import trace
 from tools import search_listings, suggest_outfit, create_fit_card
@@ -106,9 +108,94 @@ def run_agent(query: str, wardrobe: dict) -> dict:
         than a stack trace. The import is already at the top of this file.
     """
     session = new_session(query, wardrobe)
+    trace.start_trace()
 
-    # TODO: delete these two lines and build the loop.
-    session["error"] = "The planning loop isn't built yet — see the TODO in agent.py."
+    raw_query = session["query"]
+    price_match = re.search(
+        r"\b(?:under|below|up to|maximum|max)\s*\$?\s*(\d+(?:\.\d{1,2})?)|"
+        r"\$(\d+(?:\.\d{1,2})?)",
+        raw_query,
+        flags=re.IGNORECASE,
+    )
+    size_match = re.search(
+        r"\bsize\s+([a-z0-9]+(?:/[a-z0-9]+)?)\b",
+        raw_query,
+        flags=re.IGNORECASE,
+    )
+
+    max_price = None
+    if price_match:
+        max_price = float(next(group for group in price_match.groups() if group))
+
+    description = raw_query
+    for match in (price_match, size_match):
+        if match:
+            description = description.replace(match.group(0), " ")
+    description = re.sub(r"\s+", " ", description).strip(" ,.-")
+    session["parsed"] = {
+        "description": description,
+        "size": size_match.group(1) if size_match else None,
+        "max_price": max_price,
+    }
+    trace.step("parse_query", inputs=raw_query, returned=session["parsed"])
+
+    try:
+        trace.check_iterations(1)
+        session["search_results"] = search_listings(
+            session["parsed"]["description"],
+            size=session["parsed"]["size"],
+            max_price=session["parsed"]["max_price"],
+        )
+        trace.step(
+            "search_listings",
+            inputs=session["parsed"],
+            returned=session["search_results"],
+        )
+
+        if not session["search_results"]:
+            session["error"] = (
+                f"No listings matched '{raw_query}'. Try changing the item "
+                "description, size, or maximum price."
+            )
+            trace.step(
+                "stop",
+                inputs={"search_result_count": 0},
+                returned=session["error"],
+                note="empty search; skipped outfit and fit-card tools",
+            )
+            return session
+
+        session["selected_item"] = session["search_results"][0]
+
+        trace.check_iterations(2)
+        session["outfit_suggestion"] = suggest_outfit(
+            session["selected_item"], session["wardrobe"]
+        )
+        trace.step(
+            "suggest_outfit",
+            inputs={
+                "new_item_id": session["selected_item"].get("id"),
+                "wardrobe_item_count": len(session["wardrobe"].get("items", [])),
+            },
+            returned=session["outfit_suggestion"],
+        )
+
+        trace.check_iterations(3)
+        session["fit_card"] = create_fit_card(
+            session["outfit_suggestion"], session["selected_item"]
+        )
+        trace.step(
+            "create_fit_card",
+            inputs={
+                "outfit_suggestion": session["outfit_suggestion"],
+                "new_item_id": session["selected_item"].get("id"),
+            },
+            returned=session["fit_card"],
+        )
+    except ModelUnavailable as exc:
+        session["error"] = str(exc)
+        trace.step("model_error", returned=session["error"])
+
     return session
 
 
