@@ -175,7 +175,11 @@ def suggest_outfit(new_item: dict, wardrobe: dict) -> str:
         prompt = (
             f"Thrifted item:\n{item_details}\n\n"
             f"User's wardrobe:\n{wardrobe_details}\n\n"
-            "Suggest one or two wearable outfits that include the thrifted item. "
+            "Suggest one or two practical, coordinated outfits that include the "
+            "thrifted item. Pair it with wardrobe pieces from complementary "
+            "categories (for example, a top with bottoms and shoes), and use "
+            "the listed colors and style tags to make the combination cohesive. "
+            "Avoid incompatible layers or pieces that compete in proportion. "
             "Name pieces from the user's wardrobe exactly as listed, and do not "
             "claim they own anything that is not listed. Briefly explain why "
             "the pieces work together."
@@ -185,9 +189,11 @@ def suggest_outfit(new_item: dict, wardrobe: dict) -> str:
         prompt = (
             f"Thrifted item:\n{item_details}\n\n"
             "The user has not provided any wardrobe items. Give one or two "
-            "general outfit ideas for styling this item, describing types of "
-            "pieces or colors they could pair with it. Do not imply that the "
-            "user already owns any specific pieces."
+            "practical, coordinated outfit ideas for styling this item. Suggest "
+            "complementary clothing categories (for example, a top with "
+            "bottoms and shoes), and use its colors and style tags to guide the "
+            "pairings. Keep layers and proportions compatible. Describe types "
+            "of pieces rather than implying the user owns specific items."
         )
         system = "You are a practical personal stylist. Give useful advice without assuming what the user owns."
 

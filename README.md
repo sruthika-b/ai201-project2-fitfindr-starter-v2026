@@ -39,9 +39,7 @@
 
 ## What This Does
 
-<!-- Three or four sentences: what a user asks for, and what they get back. -->
-
-
+FitFindr takes a clothing query, optionally including a size and maximum price, and searches thrift listings for relevant items. It selects the highest-ranked result and asks a model to suggest outfits using the user's wardrobe, or general styling advice if the wardrobe is empty. It then creates a short fit-card caption for the selected item and suggested outfit. If nothing matches, it stops and tells the user which parts of the query to change.
 
 ---
 
@@ -93,13 +91,13 @@
      The grader checks your code against what you claim here, so the file and
      function have to be real. -->
 
-**Branch rule:** If `search_listings` returns no results, set `session["error"]` to an actionable message and return before calling later tools, otherwise, save the first result as `session["selected_item"]`, then use it with the wardrobe in `suggest_outfit` before creating the fit card.
+**Branch rule:** If `search_listings` returns an empty list, set `session["error"]` to a message suggesting the user change the item description, size, or maximum price, then return without calling `suggest_outfit` or `create_fit_card`. Otherwise, save the first result as `session["selected_item"]`, pass that item and the session wardrobe to `suggest_outfit`, then pass the saved item and outfit suggestion to `create_fit_card`.
 
 **Where it lives:** `agent.py::run_agent`
 
-**How the query is parsed:** <!-- regex, string splitting, or asking the model — say which -->
+**How the query is parsed:** Regular expressions extract an optional size after `size` and an optional price after phrases such as `under`, `below`, `up to`, `maximum`, or `max`, or a `$` amount. The remaining text is used as the item description.
 
-**What moves through the session:** <!-- which fields, in what order -->
+**What moves through the session:** `query` is parsed into `parsed` (`description`, `size`, `max_price`); `search_listings` results go into `search_results`; the first result is saved as `selected_item`; then `selected_item` and `wardrobe` produce `outfit_suggestion`, and `selected_item` plus `outfit_suggestion` produce `fit_card`. On an empty search, `error` is set and the later fields stay `None`.
 
 ---
 
@@ -167,15 +165,38 @@ Nothing beats the effortless cool of these vintage Levi's 501 jeans in a classic
      instead of an empty list, so I changed it" is the level we want. -->
 
 **Moment 1**
+I wanted to take a stab in implementing the tracing as well which is a part of Unit 4, I took AIs help in understanding how tracing works and how I can incorporate them in checking the results at every steps.
 
-- *What I asked for:*
-- *What came back:*
-- *What I changed:*
+- *What I asked for:* Can you help me with understanding the tracing library and how it can be used for verifying the results from every step.
+- *What came back:* The tracing library is a run log, not an automatic correctness checker. It helps you see what the agent did, what each tool received, and what came back. You still compare those values with what you expected.
+
+trace.start_trace() clears the previous run’s log.
+trace.step(name, inputs=..., returned=..., note=...) prints a step and saves it for later. Call it after doing the step and saving its result in the session.
+trace.get_trace() returns the recorded steps as text.
+trace.check_iterations(count) is separate: it stops a loop that runs too many times. It doesn’t verify tool results.
+- *What I changed:* This helped me understand the syntax and implement the tracing functionality
 
 **Moment 2**
 
-- *What I asked for:*
-- *What came back:*
+- *What I asked for:* Assume you are the best prompt critique, can you check my prompt for suggest outfit and list down the pros and cons of the prompt
+- *What came back:* I reviewed the current suggest_outfit prompts in tools.py. The populated-wardrobe prompt gives the model the thrifted item and the user’s wardrobe, then asks for one or two wearable outfits using listed pieces. The empty-wardrobe prompt asks for general outfit ideas without assuming what the user owns.
+
+Pros
+
+It clearly describes the task and limits the response to one or two outfits.
+Including wardrobe names, colors, categories, style tags, and notes gives the model useful context.
+Asking it to use listed wardrobe pieces helps keep suggestions grounded and reduces invented ownership claims.
+The empty-wardrobe branch handles a genuinely different case rather than sending an empty list as if it were a normal wardrobe.
+Cons
+
+“Wearable” is subjective; the prompt doesn’t define what makes an outfit practical or coherent.
+It doesn’t require a consistent response format, so results may vary in structure and be harder to compare.
+It asks for explanations, but doesn’t say how brief they should be.
+The entire wardrobe is passed in. That’s fine for the sample size, but could become noisy as a user’s wardrobe grows.
+The system instruction says to use only the provided item details. That may be overly restrictive if you want general fashion knowledge, such as familiar color-pairing advice.
+It doesn’t ask for a particular occasion, season, or level of formality, so the model has to choose those assumptions itself.
+The strongest part is that the prompt grounds suggestions in the actual wardrobe. The main improvement opportunity is to decide how consistent and concise you want the outfit response to be.
+
 - *What I changed:*
 
 <!-- ═══════════════════════ UNIT 4 — THE TEST ═══════════════════════
