@@ -197,7 +197,7 @@ The system instruction says to use only the provided item details. That may be o
 It doesn’t ask for a particular occasion, season, or level of formality, so the model has to choose those assumptions itself.
 The strongest part is that the prompt grounds suggestions in the actual wardrobe. The main improvement opportunity is to decide how consistent and concise you want the outfit response to be.
 
-- *What I changed:*
+- *What I changed:* The cons helped me be aware of the limitations of the current system and I felt like the "wearable" part actually made sense, therefore, I have changed the prompt accordingly.
 
 <!-- ═══════════════════════ UNIT 4 — THE TEST ═══════════════════════
 
