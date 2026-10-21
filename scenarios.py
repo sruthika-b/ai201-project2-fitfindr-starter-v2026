@@ -35,18 +35,27 @@ SCENARIOS = [
         "wardrobe": "empty",
         "criterion": None,
     },
-    # TODO: add what your criteria 3, 4 and 5 need.
-    #
-    # Set "criterion" to the number in criteria.md that the scenario tests.
-    # "criterion": None means a diagnostic run — useful to have, but it isn't
-    # one of your five, and run_eval.py marks it as such in the table.
-    #
-    # For a state criterion, any normal query works — what you're checking is
-    # what ends up in the session, not what the user typed.
-    #
-    # For a fit-card criterion, you probably want the SAME query listed more
-    # than once, or several different items, depending on what your criterion
-    # actually says.
+    {
+        # Repeated by run_eval.py five times to inspect fit-card quality.
+        "name": "fit card has item facts",
+        "query": "vintage graphic tee under $30",
+        "wardrobe": "example",
+        "criterion": 4,
+    },
+    {
+        # Wrong size, should only return freesize items.
+        "name": "wrong size",
+        "query": "90s track jacket in size WR",
+        "wardrobe": "example",
+        "criterion": 5,
+    },
+    {
+        # Description matches the catalog, but no item is this inexpensive.
+        "name": "matching item above price ceiling",
+        "query": "90s track jacket under $1",
+        "wardrobe": "example",
+        "criterion": 6,
+    },
 ]
 
 WARDROBES = ("example", "empty")
@@ -55,7 +64,7 @@ WARDROBES = ("example", "empty")
 def validate() -> list[str]:
     """Complain about anything malformed, before a long run rather than during."""
     problems = []
-    for i, scenario in enumerate(SCENARIOS, 1):
+    for i, scenario in enumerate(SCENARIOS, 6):
         if not scenario.get("query", "").strip():
             problems.append(f"scenario {i} has no query")
         if scenario.get("wardrobe") not in WARDROBES:

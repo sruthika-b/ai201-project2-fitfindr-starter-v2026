@@ -53,16 +53,6 @@ I picked 5 of 5 because passing the selected item between tools is a direct stat
 
 ## 4. Something about the fit card
 
-<!-- YOU WRITE THIS ONE.
-
-     The fit card calls a model, so the same input can produce different words
-     each time. That's not a bug — it's the nature of the tool. So what would
-     make it acceptable?
-
-     Think about what you'd actually be unhappy to see. A caption that never
-     mentions the price? Two different items producing the same opening
-     sentence? A card longer than a caption anyone would post? Any of those can
-     be turned into a number. -->
 For five fit-card generations using the same item and outfit, at least four captions must be 2–4 sentences and mention the item, its price, and the platform. The wording can vary.
 
 **Why this target:**
@@ -82,6 +72,13 @@ Given a query with a size that matches a listing, every result returned by searc
 
 **Why this target:**
 I chose 5 of 5 because size is a direct filter against fixed listing data, so every returned item should match the requested size. Returning even one item in the wrong size would make the search unreliable.
+
+## 6. An impossible price ceiling excludes a matching item
+
+Given a query whose description matches a listing but whose maximum price is below that listing's price, `search_listings` returns an empty list and the agent stops before `suggest_outfit` in 5 of 5 tries.
+
+**Why this target:**
+I chose 5 of 5 because the maximum price is an explicit numeric limit, so a result over budget is never acceptable. The query deliberately uses an item that exists in the catalog, which checks that the price filter—not an unrelated description mismatch—causes the empty result.
 
 ---
 
