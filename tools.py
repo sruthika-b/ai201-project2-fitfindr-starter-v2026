@@ -34,7 +34,7 @@ def _keywords(text: str) -> set[str]:
 
 def _size_tokens(size: str) -> set[str]:
     cleaned = re.sub(r"\([^)]*\)", " ", size or "")
-    parts = [p.strip().upper for p in cleaned.split("/")]
+    parts = [p.strip().upper() for p in cleaned.split("/")]
     return {p for p in parts if p}
 
 def _size_matches(wanted: str, listing_size: str) -> bool:
@@ -104,7 +104,14 @@ def search_listings(
     if max_price is not None:
         listings = [l for l in listings if l["price"] <= max_price]
     if size is not None:
-        listings = [l for l in listings if l["size"].upper() == size.upper()]
+        if size.upper() == "ONE SIZE":
+            listings = [
+                listing
+                for listing in listings
+                if any(token.startswith("ONE SIZE") for token in _size_tokens(listing["size"]))
+            ]
+        else:
+            listings = [l for l in listings if _size_matches(size, l["size"])]
     # 3. Score what's left by keyword overlap with `description`.
     query_keywords = _keywords(description)
     scored_listings = [

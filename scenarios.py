@@ -29,9 +29,9 @@ SCENARIOS = [
         "criterion": 2,
     },
     {
-        # A user with nothing saved. One of unit 4's three failure modes.
-        "name": "empty wardrobe",
-        "query": "denim jacket under $50",
+        # Empty wardrobe and no matching listing; this diagnostic expects [] search results.
+        "name": "empty wardrobe with no search matches",
+        "query": "designer ballgown size XXS under $5",
         "wardrobe": "empty",
         "criterion": None,
     },

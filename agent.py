@@ -41,6 +41,7 @@ _SIZE_WORDS = r"XXS|XS|S|M|L|XL|XXL"
 _PRICE_RE = re.compile(r"(?:under|below|less than|max|up to)?\s*\$\s*(\d+(?:\.\d+)?)", re.I)
 _INCOMPLETE_PRICE_RE = re.compile(r"\b(?:under|below|less than|max|maximum|up to)\s*$|\$\s*$", re.I)
 _SIZE_RE = re.compile(rf"\bsize\s+({_SIZE_WORDS}|US\s*\d+(?:\.\d+)?|W\d+)\b", re.I)
+_REQUESTED_SIZE_RE = re.compile(r"\bsize\s+([a-z0-9]+(?:/[a-z0-9]+)?)\b", re.I)
 _BARE_SIZE_RE = re.compile(rf",\s*({_SIZE_WORDS})\s*$", re.I)
 
 
@@ -79,7 +80,14 @@ def parse_query(query: str) -> dict:
     if size_match:
         size = re.sub(r"\s+", " ", size_match.group(1)).strip().upper()
         text = text[: size_match.start()] + " " + text[size_match.end() :]
+    else:
+        requested_size = _REQUESTED_SIZE_RE.search(text)
+        if requested_size:
+            size = "ONE SIZE"
+            text = text[: requested_size.start()] + " " + text[requested_size.end() :]
 
+    if size is not None:
+        text = re.sub(r"\bin\s*$", " ", text, flags=re.IGNORECASE)
     description = re.sub(r"[,\s]+", " ", text).strip(" ,")
     return {"description": description, "size": size, "max_price": max_price}
 
