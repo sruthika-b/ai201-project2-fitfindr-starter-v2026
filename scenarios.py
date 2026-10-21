@@ -56,6 +56,13 @@ SCENARIOS = [
         "wardrobe": "example",
         "criterion": 6,
     },
+    {
+        # Unsupported size should fall back only to One Size catalog items.
+        "name": "invalid size falls back to One Size",
+        "query": "chunky cardigan in size XR",
+        "wardrobe": "example",
+        "criterion": 7,
+    },
 ]
 
 WARDROBES = ("example", "empty")

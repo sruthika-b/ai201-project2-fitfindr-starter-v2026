@@ -74,6 +74,13 @@ Given a query whose description matches a listing but whose maximum price is bel
 **Why this target:**
 I chose 5 of 5 because the maximum price is an explicit numeric limit, so a result over budget is never acceptable. The query deliberately uses an item that exists in the catalog, which checks that the price filter—not an unrelated description mismatch—causes the empty result.
 
+## 7. An invalid size falls back to One Size listings
+
+Given a valid item query with an unsupported size token such as `XR`, the agent searches for matching One Size listings and returns only listings whose size is One Size in 5 of 5 tries.
+
+**Why this target:**
+I chose 5 of 5 because silently ignoring an invalid size could return items in sizes the user did not ask for. Falling back to One Size listings provides a usable alternative while ensuring the results are not an unfiltered mix of sizes.
+
 ---
 
 <!-- ─────────────────────────────────────────────────────────────────────────
