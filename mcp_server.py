@@ -66,26 +66,31 @@ from tools import search_listings as _search_listings_impl  # noqa: F401 — you
 # CallToolRequest" and the output you actually care about scrolls away.
 mcp = FastMCP("fitfindr", log_level="WARNING")
 
+@mcp.tool()
+def search_listings(
+    description: str,
+    size: str | None = None,
+    max_price: float | None = None,
+) -> list[dict]:
+    """
+    Searches a fixed catalog of 40 second-hand clothing listings.
 
-# ── TODO: uncomment and fill this in ──────────────────────────────────────────
-#
-# @mcp.tool()
-# def search_listings(
-#     description: str,
-#     size: str | None = None,
-#     max_price: float | None = None,
-# ) -> list[dict]:
-#     """
-#     <-- YOUR DESCRIPTION GOES HERE.
-#
-#         One or two sentences. What does this tool do, what does it need, and
-#         what does it give back when it finds nothing? Written for a reader
-#         who cannot see the code.
-#     """
-#     return _search_listings_impl(description, size, max_price)
-#
-# ──────────────────────────────────────────────────────────────────────────────
-#
+    'description' is a free text and is matched as keywords against each listing's 
+    title, description, category, brand, style tags and colors; a listing must share atleast
+    one keyword to be returned. 'size' is optional and matched as a while sized token,
+    so "M" matches a listing sized "M","S/M","M/L" but not "XL"; listings sized "One Size"
+    match and request.
+    'max_price' is optional, in dollars, and inclusive.
+
+    Returns a list of listing dicts, best keyword match first and cheaper first among equal matches.
+    Each dict has the following keys: id, title, description, category, brand(often null), size, condition, 
+    price, style_tags, colors, platform.
+
+    **Returns an empty list if no listings match.** It doesn't return null and it doesn't 
+    raise an error. Empty is the normal way of this tool saying "no results found".
+
+    """
+    return _search_listings_impl(description, size, max_price)
 # Two notes on the block above.
 #
 # The registered name is the *function* name — so the block above registers

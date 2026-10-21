@@ -108,36 +108,25 @@ def run_agent(query: str, wardrobe: dict) -> dict:
         than a stack trace. The import is already at the top of this file.
     """
     session = new_session(query, wardrobe)
-    trace.start_trace()
+    steps = 0
 
-    raw_query = session["query"]
-    price_match = re.search(
-        r"\b(?:under|below|up to|maximum|max)\s*\$?\s*(\d+(?:\.\d{1,2})?)|"
-        r"\$(\d+(?:\.\d{1,2})?)",
-        raw_query,
-        flags=re.IGNORECASE,
-    )
-    size_match = re.search(
-        r"\bsize\s+([a-z0-9]+(?:/[a-z0-9]+)?)\b",
-        raw_query,
-        flags=re.IGNORECASE,
-    )
+    steps += 1
+    trace.check_iterations(steps)
+    parsed = parse_query(query)
+    session["parsed"] = parsed
+    trace.step("parse_query", inputs=query, returned=str(parsed))
 
-    max_price = None
-    if price_match:
-        max_price = float(next(group for group in price_match.groups() if group))
+    steps += 1
+    trace.check_iterations(steps)
+    results = call_tool("search_listings", {
+        "description": parsed["description"],
+        "size": parsed["size"],
+        "max_price": parsed["max_price"],
+    })
+    session["search_results"] = results
+    trace.step("search_listings (VIA MCP)", inputs=str(parsed), returned=results,
+               note=f"{len(results)} results returned")
 
-    description = raw_query
-    for match in (price_match, size_match):
-        if match:
-            description = description.replace(match.group(0), " ")
-    description = re.sub(r"\s+", " ", description).strip(" ,.-")
-    session["parsed"] = {
-        "description": description,
-        "size": size_match.group(1) if size_match else None,
-        "max_price": max_price,
-    }
-    trace.step("parse_query", inputs=raw_query, returned=session["parsed"])
 
     try:
         trace.check_iterations(1)
