@@ -144,13 +144,6 @@ def suggest_outfit(new_item: dict, wardrobe: dict) -> str:
         raising or returning "". Unit 4 has you trigger the empty wardrobe on
         purpose, so decide now what it should do.
 
-    TODO:
-        1. Check whether wardrobe['items'] is empty.
-        2. If it is, ask the model for general styling ideas for this item.
-        3. If it isn't, format the wardrobe items into the prompt and ask for
-           specific combinations naming pieces the user already owns.
-        4. Return the model's response.
-
     Test it from a terminal before you move on:
         python -c "from tools import suggest_outfit; from utils.data_loader import get_example_wardrobe, load_listings; print(suggest_outfit(load_listings()[0], get_example_wardrobe()))"
     """
@@ -175,11 +168,7 @@ def suggest_outfit(new_item: dict, wardrobe: dict) -> str:
         prompt = (
             f"Thrifted item:\n{item_details}\n\n"
             f"User's wardrobe:\n{wardrobe_details}\n\n"
-            "Suggest one or two practical, coordinated outfits that include the "
-            "thrifted item. Pair it with wardrobe pieces from complementary "
-            "categories (for example, a top with bottoms and shoes), and use "
-            "the listed colors and style tags to make the combination cohesive. "
-            "Avoid incompatible layers or pieces that compete in proportion. "
+            "Suggest one or two wearable outfits that include the thrifted item. "
             "Name pieces from the user's wardrobe exactly as listed, and do not "
             "claim they own anything that is not listed. Briefly explain why "
             "the pieces work together."
@@ -189,11 +178,9 @@ def suggest_outfit(new_item: dict, wardrobe: dict) -> str:
         prompt = (
             f"Thrifted item:\n{item_details}\n\n"
             "The user has not provided any wardrobe items. Give one or two "
-            "practical, coordinated outfit ideas for styling this item. Suggest "
-            "complementary clothing categories (for example, a top with "
-            "bottoms and shoes), and use its colors and style tags to guide the "
-            "pairings. Keep layers and proportions compatible. Describe types "
-            "of pieces rather than implying the user owns specific items."
+            "general outfit ideas for styling this item, describing types of "
+            "pieces or colors they could pair with it. Do not imply that the "
+            "user already owns any specific pieces."
         )
         system = "You are a practical personal stylist. Give useful advice without assuming what the user owns."
 
