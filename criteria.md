@@ -60,18 +60,12 @@ I chose 4 of 5 because the model can phrase the same caption differently and may
 
 ---
 
-## 5. Your choice
+## 5. Unavailable size returns no listing
 
-<!-- YOU WRITE THIS ONE TOO.
-
-     Pick something you actually care about getting right. Speed, the empty
-     wardrobe path, what happens when the model can't be reached, whether the
-     search respects a price ceiling — anything, as long as it names a number
-     or an observable outcome. -->
-Given a query with a size that matches a listing, every result returned by search_listings matches that size in 5 of 5 tries.
+Given a query whose description matches a listing but requests size XXS, which is not present for that item in the catalog, `search_listings` returns an empty list and the agent stops before `suggest_outfit` in 5 of 5 tries.
 
 **Why this target:**
-I chose 5 of 5 because size is a direct filter against fixed listing data, so every returned item should match the requested size. Returning even one item in the wrong size would make the search unreliable.
+I chose 5 of 5 because an explicit size request is a hard filter: the agent should not suggest an item in a different size when no matching size is listed. The item description is known to match, so this specifically checks the size filter and empty-result branch.
 
 ## 6. An impossible price ceiling excludes a matching item
 

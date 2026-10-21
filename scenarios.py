@@ -43,9 +43,9 @@ SCENARIOS = [
         "criterion": 4,
     },
     {
-        # Wrong size, should only return freesize items.
-        "name": "wrong size",
-        "query": "90s track jacket in size WR",
+        # The item description matches, but the catalog has no XXS track jacket.
+        "name": "matching item unavailable in requested size",
+        "query": "90s track jacket in size XXS",
         "wardrobe": "example",
         "criterion": 5,
     },

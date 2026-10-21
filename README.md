@@ -11,11 +11,9 @@
 > python app.py listings --full -n 6      # read the data (Milestone 1)
 > python app.py fields                    # what you can filter on
 > python app.py ask 'vintage graphic tee under $30'
-> ```
->
-> All three tools are stubs, so that last command will do nothing useful yet.
-> That's the starting position.
->
+```
+
+---
 > **The rest of this file is your submission.** Fill it in as you go.
 
 ---
@@ -219,17 +217,81 @@ The strongest part is that the prompt grounds suggestions in the actual wardrobe
 
 | Criterion | Target | Try 1 | Try 2 | Try 3 | Try 4 | Try 5 | Verdict |
 |---|---|---|---|---|---|---|---|
-| 1.  |  |  |  |  |  |  |  |
-| 2.  |  |  |  |  |  |  |  |
-| 3.  |  |  |  |  |  |  |  |
-| 4.  |  |  |  |  |  |  |  |
-| 5.  |  |  |  |  |  |  |  |
+| 1. Matching query completes all three tools | 4 of 5 | PASS | PASS | PASS | PASS | PASS | MET (5/5) |
+| 2. Impossible query stops before `suggest_outfit` | 5 of 5 | PASS | PASS | PASS | PASS | PASS | MET (5/5) |
+| 3. Selected item ID reaches `suggest_outfit` unchanged | 5 of 5 | NOT VERIFIED | NOT VERIFIED | NOT VERIFIED | NOT VERIFIED | NOT VERIFIED | NOT VERIFIED (IDs absent from saved trace) |
+| 4. Fit card mentions item, price, and platform | 4 of 5 | PASS | PASS | PASS | PASS | PASS | MET (5/5) |
+| 5. Unavailable size returns no listing and stops before `suggest_outfit` | 5 of 5 | NOT TESTED | NOT TESTED | NOT TESTED | NOT TESTED | NOT TESTED | NOT TESTED (revised scenario not in saved run) |
+| 6. Impossible price ceiling excludes matching item | 5 of 5 | PASS | PASS | PASS | PASS | PASS | MET (5/5) |
 
-**Real output from one try**, pasted as text, naming the file and function
-that produced it:
+`criteria.md` currently has six criteria, so this table includes all six.
+The saved report does not record item IDs for criterion 3. Criterion 5 was
+revised after that report: its old `WR` scenario did not parse as a size, so it
+does not test the new XXS case. No new evaluation was run.
 
+**Real output from one try for each criterion**, from
+`results/run_2026-10-21_1314_before.md` (`run_eval.py::main` calls
+`run_eval.py::run_once`, which calls `agent.py::run_agent`):
+
+Criterion 1 — matching query completes:
+```
+- stopped early: no
+- selected_item: Graphic Tee — 2003 Tour Bootleg Style ($24.0, depop)
+- search_results: 8
+[4] suggest_outfit
+     in:  Graphic Tee — 2003 Tour Bootleg Style ($24.0, depop)
+[5] create_fit_card
+     in:  Graphic Tee — 2003 Tour Bootleg Style ($24.0, depop)
+Fit card:
+Channel your inner rockstar with this Y2K-inspired graphic tee, giving major effortless grunge vibes. It's listed on Depop for $24.00, perfect for styling with baggy denim or wide-leg trousers. Grab it before it's gone and level up your streetwear rotation!
 ```
 
+Criterion 2 — impossible query stops early:
+```
+- stopped early: yes — Nothing in the listings matched description 'designer ballgown', size XXS, under $5.
+- selected_item: (none)
+- search_results: 0
+[2] search_listings (via MCP)
+     out: [] (empty)
+[3] branch
+     →    search returned []: stopping before suggest_outfit
+Things to change: try broader words — 'jacket' finds more than 'cropped corduroy jacket'; drop the size, or try a neighbouring one; raise the price ceiling above $5.
+```
+
+Criterion 3 — state handoff (the saved trace shows matching item details, but not IDs):
+```
+- selected_item: Graphic Tee — 2003 Tour Bootleg Style ($24.0, depop)
+[4] suggest_outfit
+     in:  Graphic Tee — 2003 Tour Bootleg Style ($24.0, depop)
+```
+
+Criterion 4 — fit-card content:
+```
+Fit card:
+Channel your inner rockstar with this Y2K-inspired graphic tee, giving major effortless grunge vibes. It's listed on Depop for $24.00, perfect for styling with baggy denim or wide-leg trousers. Grab it before it's gone and level up your streetwear rotation!
+```
+
+Criterion 5 — saved output from the old scenario only; this does not test the revised XXS criterion because `WR` is unsupported:
+```
+- Query: `90s track jacket in size WR`
+- selected_item: 90s Track Jacket — Navy/White Stripe ($45.0, poshmark)
+- search_results: 10
+[2] search_listings (via MCP)
+     in:  dict with keys: description, size, max_price
+     out: 10 items: 90s Track Jacket — Navy/White Stripe, Platform Sneakers — White Chunky Sole, 90s Leather Bomber — Black … +7 more
+```
+
+Criterion 6 — matching description, impossible price ceiling:
+```
+- Query: `90s track jacket under $1`
+- stopped early: yes — Nothing in the listings matched description '90s track jacket', under $1.
+- selected_item: (none)
+- search_results: 0
+[2] search_listings (via MCP)
+     out: [] (empty)
+[3] branch
+     →    search returned []: stopping before suggest_outfit
+Things to change: try broader words — 'jacket' finds more than 'cropped corduroy jacket'; raise the price ceiling above $1.
 ```
 
 ---
@@ -254,11 +316,12 @@ that produced it:
 
 | # | Criterion | Target | Verdict | How I decided |
 |---|---|---|---|---|
-| 1 |  |  |  |  |
-| 2 |  |  |  |  |
-| 3 |  |  |  |  |
-| 4 |  |  |  |  |
-| 5 |  |  |  |  |
+| 1 | Matching query completes all three tools | 4 of 5 | MET (5/5) | All five saved tries completed without stopping early, selected a listing, and included a fit card. |
+| 2 | Impossible query stops before `suggest_outfit` | 5 of 5 | MET (5/5) | All five saved tries had zero search results, an actionable message, and no outfit or fit-card call. |
+| 3 | Selected item ID reaches `suggest_outfit` unchanged | 5 of 5 | MISSED (0/5 verified) | The saved trace shows the same item title and price, but not IDs; it cannot prove the required ID equality on any try. This is missing evidence, not proof of a bad handoff. |
+| 4 | Fit card has item, price, and platform in 2–4 sentences | 4 of 5 | MET (5/5 content checks) | All five saved captions contain the item description, price, and platform and are 2–3 sentences. The outfit suggestions varied, so the saved run did not keep the exact outfit fixed. |
+| 5 | Unavailable size returns no listing and stops before `suggest_outfit` | 5 of 5 | NOT TESTED | The saved run predates the revised scenario and tested unsupported `WR`, not the valid unavailable size `XXS`. |
+| 6 | Impossible price ceiling excludes a matching item | 5 of 5 | MET (5/5) | All five saved tries returned an empty search for the matching jacket description under $1 and stopped before `suggest_outfit`, with a message to raise the ceiling. |
 
 **Diagnoses**
 
